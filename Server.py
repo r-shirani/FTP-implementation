@@ -214,7 +214,18 @@ class Server:
                   
             #change the current directory to a certain directory
             elif request.upper()=="CWD":
-                break
+                if not self.user_authenticated:
+                    control_connection.send(b"    *530* Please login first.\r\n")
+                elif not users[username]["write_access"]:
+                    control_connection.send(b"    *530* You do not have write access.\r\n")        
+                else:
+                    try:
+                        os.chdir(arg)#change the current directory to arg directory
+                        self.current_dir = os.getcwd()#update the current directory
+                        control_connection.send(b"    *250* Directory changed.\r\n")
+                    except FileNotFoundError:
+                        control_connection.send(b"    *550* Directory not found.\r\n")
+              
             #change the directory to the parent directory
             elif request.upper()=="CDUP":
                 break
