@@ -96,6 +96,7 @@ class Server:
                 else:
                     control_connection.send(b"    *530* Invalid username.\r\n")
             #user's password
+          
             elif request.upper()=="PASS":
                 password=arg
                 if(self.authenticate_user(username,password)):
@@ -128,9 +129,23 @@ class Server:
                         control_connection.send(b"\n    *226* Transfer complete.\r\n")
                     except FileNotFoundError:
                         control_connection.send(b"    *550* Path not found.\r\n")
+                      
             #download a file from the server
             elif request.upper()=="RETR":
-                break
+                if not self.user_authenticated:
+                    control_connection.send(b"    *530* Please login first.\r\n")
+                elif not users[username]["read_access"]:
+                    control_connection.send(b"    *530* You do not have read access.\r\n")    
+                else:
+                    try:
+                        #open the certain file(arg) in reading binary mode
+                        with open(arg, "rb") as file:
+                            control_connection.send(b"    *150* Opening data connection.\r\n")
+                            data_connection.send(file.read())#read all file and send to client via data_connection
+                            control_connection.send(b"    *226* Transfer complete.\r\n")
+                    except FileNotFoundError:
+                        control_connection.send(b"    *550* File not found.\r\n")
+                      
             #upload a file to the server
             elif request.upper()=="STOR":
                 break
