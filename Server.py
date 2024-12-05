@@ -254,4 +254,7 @@ class Server:
         control_connection.close()
         data_connection.close()
 
-
+if __name__ == "__main__":
+    server =Server(host, control_port, data_port)
+    server.start()
+    file_info_list = []
