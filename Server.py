@@ -192,7 +192,17 @@ class Server:
                       
             #delete a directory from the server
             elif request.upper()=="RMD":
-                break
+                if not self.user_authenticated:
+                    control_connection.send(b"    *530* Please login first.\r\n")
+                elif not users[username]["delete_access"]:
+                    control_connection.send(b"    *530* You do not have delete access.\r\n")    
+                else:
+                    try:
+                        os.rmdir(arg)
+                        control_connection.send(f"    *250* Directory \"{arg}\" removed successfully.\r\n".encode())
+                    except Exception as e:
+                        control_connection.send(f"    *550* Failed to remove directory: {e}\r\n".encode())
+              
             #get the current server directory path
             elif request.upper()=="PWD":
                 break
