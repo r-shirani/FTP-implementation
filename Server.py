@@ -228,7 +228,19 @@ class Server:
               
             #change the directory to the parent directory
             elif request.upper()=="CDUP":
-                break
+                if not self.user_authenticated:
+                    control_connection.send(b"    *530* Please login first.\r\n")
+                elif not users[username]["write_access"]:
+                    control_connection.send(b"    *530* You do not have write access.\r\n")        
+                else:
+                    try:
+                        parent_dir = os.path.dirname(self.current_dir)
+                        os.chdir(parent_dir)
+                        self.current_dir = os.getcwd()
+                        control_connection.send(b"    *250* Directory changed to parent directory.\r\n")
+                    except Exception as e:
+                        control_connection.send(f"    *550* Failed to change directory: {e}\r\n".encode())
+                      
             #disconnecting the client from the server
             elif request.upper()=="QUIT":
                 break
