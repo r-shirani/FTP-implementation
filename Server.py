@@ -177,7 +177,19 @@ class Server:
               
             # make a new directory in the server
             elif request.upper()=="MKD":
-                break
+                if not self.user_authenticated:
+                    control_connection.send(b"    *530* Please login first.\r\n")
+                elif not users[username]["create_access"]:
+                    control_connection.send(b"    *530* You do not have create access.\r\n")    
+                else:
+                    try:
+                        os.makedirs(arg)
+                        #if makedirs(org) was successful, send data by converting them to byte with .encode()
+                        control_connection.send(f"    *257* \"{arg}\" directory created.\r\n".encode())
+                    except Exception as e:
+                        #if makedirs(arg) wasn't successful, send the e exception to the client
+                        control_connection.send(f"    *550* Failed to create directory: {e}\r\n".encode())
+                      
             #delete a directory from the server
             elif request.upper()=="RMD":
                 break
