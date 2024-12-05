@@ -97,10 +97,10 @@ class Server:
             #user's password
             elif request.upper()=="PASS":
               if(username and users[username]["password"]):
-                    self.authenticate_user=True
-                    control_connection.send(b"    *230* Login successful.\r\n")
-                else:
-                    control_connection.send(b"    *530* Invalid password.\r\n")
+                self.authenticate_user=True
+                control_connection.send(b"    *230* Login successful.\r\n")
+              else:
+                control_connection.send(b"    *530* Invalid password.\r\n")
                   
             #Sending a list of files and directories in the current directory from the server to the client
             elif request.upper()=="LIST":
@@ -118,8 +118,8 @@ class Server:
                         for file in files:
                           file_path = os.path.join(path, file)#creat file path
                           size = os.path.getsize(file_path)#size of file
-                          time = time.ctime(os.path.getmtime(file_path))#creating file'time  
-                          file_info_list.append(f"{time} | {file} | {size} bytes ")
+                          opening_time = time.ctime(os.path.getmtime(file_path))#creating file'time  
+                          file_info_list.append(f"{opening_time} | {file} | {size} bytes ")
 
                         file_list = "\n".join(file_info_list)
                         control_connection.sendall(file_list.encode())
