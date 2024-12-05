@@ -97,7 +97,13 @@ class Server:
                     control_connection.send(b"    *530* Invalid username.\r\n")
             #user's password
             elif request.upper()=="PASS":
-                break
+                password=arg
+                if(self.authenticate_user(username,password)):
+                    self.authenticate_user=True
+                    control_connection.send(b"    *230* Login successful.\r\n")
+                else:
+                    control_connection.send(b"    *530* Invalid password.\r\n")
+                  
             #Sending a list of files and directories in the current directory from the server to the client
             elif request.upper()=="LIST":
                 break
