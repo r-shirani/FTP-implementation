@@ -243,10 +243,12 @@ class Server:
                       
             #disconnecting the client from the server
             elif request.upper()=="QUIT":
+                control_connection.send(b"    *221* disconnected from the server.\r\n")
                 break
-            #no requests found
+              
+            #no requests found or wrong command
             else:
-                break
+                control_connection.send(b"    *502* Command not implemented.\r\n")
         
         #close the connections
         control_connection.close()
