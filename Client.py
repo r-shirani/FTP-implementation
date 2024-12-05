@@ -34,9 +34,7 @@ def Client():
            if result.startswith('    *150*'):    #preparing to transfer the file 
              filename = command.split()[1]       #file name
              with open(filename, "wb") as file:  #open file in writting mode
-                  data = data_socket.recv(1024)  #receive the file via data soket
-                  if not data:
-                    break
+                  data = data_socket.recv(1024)  #receive the file via data socket
                   file.write(data)  #write the data in the file
              print(control_socket.recv(1024).decode()) #print the result from the server
         elif command.upper().startswith("STOR"): #for uploading a file
@@ -44,8 +42,7 @@ def Client():
            if result.startswith('    *150*'):    #preparing the server to get the file
                filename = command.split()[1]     #file name
                with open(filename, "rb") as file:#open a file in reading mode
-                   while chunk:=file.read(1024) :#file hasn't finished yet
-                       data_socket.send(chunk)   #send a chunk of data to the server
+                       data_socket.send(file.read())   #send a chunk of data to the server
         else:
             send_command(command)
 
