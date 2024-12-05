@@ -85,8 +85,6 @@ class Server:
             #split request and argument
             request, *args = command.split()
             arg = " ".join(args)
-            username=None
-            password=None
           
             #user wants to enter the system
             if request.upper()=="USER":
@@ -98,8 +96,7 @@ class Server:
                   
             #user's password
             elif request.upper()=="PASS":
-                password=arg
-                if(self.authenticate_user(username,password)):
+              if(username and users[username]["password"]):
                     self.authenticate_user=True
                     control_connection.send(b"    *230* Login successful.\r\n")
                 else:
