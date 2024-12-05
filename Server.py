@@ -95,8 +95,8 @@ class Server:
                     control_connection.send(b"    *331* Username accepted enter password.\r\n")
                 else:
                     control_connection.send(b"    *530* Invalid username.\r\n")
+                  
             #user's password
-          
             elif request.upper()=="PASS":
                 password=arg
                 if(self.authenticate_user(username,password)):
@@ -148,7 +148,20 @@ class Server:
                       
             #upload a file to the server
             elif request.upper()=="STOR":
-                break
+                if not self.user_authenticated:
+                    control_connection.send(b"    *530* Please login first.\r\n")
+                elif not users[username]["write_access"]:
+                    control_connection.send(b"    *530* You do not have write access.\r\n")    
+                else:
+                    try:
+                        control_connection.send(b"    *150* Ready to receive file.\r\n")
+                        with open(arg, "wb") as file:#open a file with arg name in writing binary mode
+                                data = data_connection.recv(1024*1024*10)#receive file info in binary
+                                file.write(data)#write the received data from a client in the file
+                        control_connection.send(b"    *226* Transfer complete.\r\n")
+                    except Exception:
+                        control_connection.send(b"    *550* Error saving file.\r\n")
+                      
             #delete a file from the server
             elif request.upper()=="DELE":
                 break
