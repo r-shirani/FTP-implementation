@@ -65,6 +65,12 @@ class Server:
             print("Data connection established.")
             #processing client's requests
             self.client_requests(control_connection, data_connection)
+
+    def authenticate_user(username, password):
+        if username and username[username]["password"]==password:
+            return True
+        return False
+      
     def client_requests(self,control_connection,data_connection):
         #welcoming message
         control_connection.send(b"** Welcome to FTP Server **\r\n")
