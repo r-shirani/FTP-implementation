@@ -65,13 +65,12 @@ class Server:
             print("Data connection established.")
             #processing client's requests
             self.client_requests(control_connection, data_connection)
-        def client_requests(self,control_connection,data_connection):
-
+    def client_requests(self,control_connection,data_connection):
         #welcoming message
         control_connection.send(b"** Welcome to FTP Server **\r\n")
         username = None
 
-        #recein=ving client's requests until client quits
+        #receiving client's requests until client quits
         while True:
             command = control_connection.recv(1024).decode().strip()
             if not command:
@@ -80,10 +79,16 @@ class Server:
             #split request and argument
             request, *args = command.split()
             arg = " ".join(args)
-
+            username=None
+            password=None
+          
             #user wants to enter the system
             if request.upper()=="USER":
-                break
+                if arg in users:
+                    username = arg
+                    control_connection.send(b"    *331* Username accepted enter password.\r\n")
+                else:
+                    control_connection.send(b"    *530* Invalid username.\r\n")
             #user's password
             elif request.upper()=="PASS":
                 break
