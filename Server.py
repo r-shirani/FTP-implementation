@@ -164,7 +164,17 @@ class Server:
                       
             #delete a file from the server
             elif request.upper()=="DELE":
-                break
+              if not self.user_authenticated:
+                    control_connection.send(b"    *530* Please login first.\r\n")
+                elif not users[username]["delete_access"]:
+                    control_connection.send(b"    *530* You do not have delete access.\r\n")    
+                else:
+                    try:
+                        os.remove(arg)#remove the file
+                        control_connection.send(b"    *250* File deleted successfully.\r\n")
+                    except FileNotFoundError:
+                        control_connection.send(b"    *550* File not found.\r\n")
+              
             # make a new directory in the server
             elif request.upper()=="MKD":
                 break
