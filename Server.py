@@ -4,7 +4,7 @@ import time
 
 host = '127.0.0.1'     #local host
 control_port = 21      #standard control port
-data_port = 2021       #can be 2021, 2121, 3000, etc for transferring data
+data_port = 2021       #can be 2021, 2121, 3000 etc for transfering data
 BASE_DIR = os.getcwd() #current directory
 
 users ={
@@ -66,26 +66,21 @@ class Server:
             #processing client's requests
             self.client_requests(control_connection, data_connection)
 
-    def authenticate_user(username, password):
-        if username and users[username]["password"]==password:
-            return True
-        return False
-      
     def client_requests(self,control_connection,data_connection):
+
         #welcoming message
         control_connection.send(b"** Welcome to FTP Server **\r\n")
         username = None
-
-        #receiving client's requests until client quits
+        
+        #recein=ving client's requests until client quits
         while True:
             command = control_connection.recv(1024).decode().strip()
             if not command:
                 break
 
-            #split request and argument
             request, *args = command.split()
             arg = " ".join(args)
-          
+
             #user wants to enter the system
             if request.upper()=="USER":
                 if arg in users:
@@ -93,23 +88,24 @@ class Server:
                     control_connection.send(b"    *331* Username accepted enter password.\r\n")
                 else:
                     control_connection.send(b"    *530* Invalid username.\r\n")
-                  
+
             #user's password
             elif request.upper()=="PASS":
-              if(username and users[username]["password"]):
-                self.authenticate_user=True
-                control_connection.send(b"    *230* Login successful.\r\n")
-              else:
-                control_connection.send(b"    *530* Invalid password.\r\n")
-                  
+                if users[username]["password"] == arg:
+                    self.user_authenticated = True
+                    control_connection.send(b"    *230* Login successful.\r\n")
+                else:
+                    control_connection.send(b"    *530* Invalid password.\r\n")
+
             #Sending a list of files and directories in the current directory from the server to the client
             elif request.upper()=="LIST":
+
                 if not self.user_authenticated:
                     control_connection.send(b"    *530* Please login first.\r\n")
                 elif not users[username]["read_access"]:
                     control_connection.send(b"    *530* You do not have read access.\r\n")
                 else:
-                    #path can be the current path or a certain path
+                    #path can be current path or a certain path
                     path = arg if arg else self.current_dir
                     try:
                         control_connection.send(b"    *125* Opening data connection.\r\n")
@@ -126,7 +122,7 @@ class Server:
                         control_connection.send(b"\n    *226* Transfer complete.\r\n")
                     except FileNotFoundError:
                         control_connection.send(b"    *550* Path not found.\r\n")
-                      
+
             #download a file from the server
             elif request.upper()=="RETR":
                 if not self.user_authenticated:
@@ -142,7 +138,7 @@ class Server:
                             control_connection.send(b"    *226* Transfer complete.\r\n")
                     except FileNotFoundError:
                         control_connection.send(b"    *550* File not found.\r\n")
-                      
+
             #upload a file to the server
             elif request.upper()=="STOR":
                 if not self.user_authenticated:
@@ -154,14 +150,14 @@ class Server:
                         control_connection.send(b"    *150* Ready to receive file.\r\n")
                         with open(arg, "wb") as file:#open a file with arg name in writing binary mode
                                 data = data_connection.recv(1024*1024*10)#receive file info in binary
-                                file.write(data)#write the received data from a client in the file
+                                file.write(data)#write the received data from client in the file
                         control_connection.send(b"    *226* Transfer complete.\r\n")
                     except Exception:
                         control_connection.send(b"    *550* Error saving file.\r\n")
-                      
+
             #delete a file from the server
             elif request.upper()=="DELE":
-              if not self.user_authenticated:
+                if not self.user_authenticated:
                     control_connection.send(b"    *530* Please login first.\r\n")
                 elif not users[username]["delete_access"]:
                     control_connection.send(b"    *530* You do not have delete access.\r\n")    
@@ -171,8 +167,8 @@ class Server:
                         control_connection.send(b"    *250* File deleted successfully.\r\n")
                     except FileNotFoundError:
                         control_connection.send(b"    *550* File not found.\r\n")
-              
-            # make a new directory in the server
+                
+            #make a new directory in the server
             elif request.upper()=="MKD":
                 if not self.user_authenticated:
                     control_connection.send(b"    *530* Please login first.\r\n")
@@ -181,12 +177,12 @@ class Server:
                 else:
                     try:
                         os.makedirs(arg)
-                        #if makedirs(org) was successful, send data by converting them to byte with .encode()
+                        #if makedirs(org) was successful,send data by converting them to byte with .encode()
                         control_connection.send(f"    *257* \"{arg}\" directory created.\r\n".encode())
                     except Exception as e:
                         #if makedirs(arg) wasn't successful, send the e exception to the client
                         control_connection.send(f"    *550* Failed to create directory: {e}\r\n".encode())
-                      
+
             #delete a directory from the server
             elif request.upper()=="RMD":
                 if not self.user_authenticated:
@@ -199,7 +195,7 @@ class Server:
                         control_connection.send(f"    *250* Directory \"{arg}\" removed successfully.\r\n".encode())
                     except Exception as e:
                         control_connection.send(f"    *550* Failed to remove directory: {e}\r\n".encode())
-              
+
             #get the current server directory path
             elif request.upper()=="PWD":
                 if not self.user_authenticated:
@@ -208,7 +204,7 @@ class Server:
                     control_connection.send(b"    *530* You do not have read access.\r\n")    
                 else:
                     control_connection.send(f"    *257* \"{self.current_dir}\"\r\n".encode())
-                  
+
             #change the current directory to a certain directory
             elif request.upper()=="CWD":
                 if not self.user_authenticated:
@@ -222,7 +218,7 @@ class Server:
                         control_connection.send(b"    *250* Directory changed.\r\n")
                     except FileNotFoundError:
                         control_connection.send(b"    *550* Directory not found.\r\n")
-              
+
             #change the directory to the parent directory
             elif request.upper()=="CDUP":
                 if not self.user_authenticated:
@@ -237,12 +233,12 @@ class Server:
                         control_connection.send(b"    *250* Directory changed to parent directory.\r\n")
                     except Exception as e:
                         control_connection.send(f"    *550* Failed to change directory: {e}\r\n".encode())
-                      
+
             #disconnecting the client from the server
             elif request.upper()=="QUIT":
                 control_connection.send(b"    *221* disconnected from the server.\r\n")
                 break
-              
+
             #no requests found or wrong command
             else:
                 control_connection.send(b"    *502* Command not implemented.\r\n")
