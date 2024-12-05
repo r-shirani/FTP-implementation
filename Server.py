@@ -205,7 +205,13 @@ class Server:
               
             #get the current server directory path
             elif request.upper()=="PWD":
-                break
+                if not self.user_authenticated:
+                    control_connection.send(b"    *530* Please login first.\r\n")
+                elif not users[username]["read_access"]:
+                    control_connection.send(b"    *530* You do not have read access.\r\n")    
+                else:
+                    control_connection.send(f"    *257* \"{self.current_dir}\"\r\n".encode())
+                  
             #change the current directory to a certain directory
             elif request.upper()=="CWD":
                 break
