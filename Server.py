@@ -106,7 +106,28 @@ class Server:
                   
             #Sending a list of files and directories in the current directory from the server to the client
             elif request.upper()=="LIST":
-                break
+                if not self.user_authenticated:
+                    control_connection.send(b"    *530* Please login first.\r\n")
+                elif not users[username]["read_access"]:
+                    control_connection.send(b"    *530* You do not have read access.\r\n")
+                else:
+                    #path can be the current path or a certain path
+                    path = arg if arg else self.current_dir
+                    try:
+                        control_connection.send(b"    *125* Opening data connection.\r\n")
+                        files = os.listdir(path)#list of files in the path
+                        file_info_list = []#empty list to save info
+                        for file in files:
+                          file_path = os.path.join(path, file)#creat file path
+                          size = os.path.getsize(file_path)#size of file
+                          time = time.ctime(os.path.getmtime(file_path))#creating file'time  
+                          file_info_list.append(f"{time} | {file} | {size} bytes ")
+
+                        file_list = "\n".join(file_info_list)
+                        control_connection.sendall(file_list.encode())
+                        control_connection.send(b"\n    *226* Transfer complete.\r\n")
+                    except FileNotFoundError:
+                        control_connection.send(b"    *550* Path not found.\r\n")
             #download a file from the server
             elif request.upper()=="RETR":
                 break
