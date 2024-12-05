@@ -2,9 +2,10 @@ import socket
 import os
 import time
 
-host = '127.0.0.1' #local host
-control_port = 21  #standard control port
-data_port = 2021   #can be 2021, 2121, 3000, etc for transferring data
+host = '127.0.0.1'     #local host
+control_port = 21      #standard control port
+data_port = 2021       #can be 2021, 2121, 3000, etc for transferring data
+BASE_DIR = os.getcwd() #current directory
 
 users ={
   "user1":  {"password":"00000001","read_access":False, "write_access":False, "delete_access":False, "create_access":False },
@@ -24,3 +25,12 @@ users ={
   "user15": {"password":"00000015","read_access":True,  "write_access":True,  "delete_access":True,  "create_access":False },
   "user16": {"password":"00000016","read_access":True,  "write_access":True,  "delete_access":True,  "create_access":True  },
 }
+
+class Server:
+    #initial value of constructor
+    def __init__(self, host, control_port, data_port):
+        self.host = host
+        self.control_port = control_port
+        self.data_port = data_port
+        self.current_dir = BASE_DIR
+        self.user_authenticated = False
