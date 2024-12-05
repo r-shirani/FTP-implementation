@@ -67,7 +67,7 @@ class Server:
             self.client_requests(control_connection, data_connection)
 
     def authenticate_user(username, password):
-        if username and username[username]["password"]==password:
+        if username and users[username]["password"]==password:
             return True
         return False
       
