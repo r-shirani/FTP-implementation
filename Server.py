@@ -65,4 +65,64 @@ class Server:
             print("Data connection established.")
             #processing client's requests
             self.client_requests(control_connection, data_connection)
+        def client_requests(self,control_connection,data_connection):
+
+        #welcoming message
+        control_connection.send(b"** Welcome to FTP Server **\r\n")
+        username = None
+
+        #recein=ving client's requests until client quits
+        while True:
+            command = control_connection.recv(1024).decode().strip()
+            if not command:
+                break
+
+            #split request and argument
+            request, *args = command.split()
+            arg = " ".join(args)
+
+            #user wants to enter the system
+            if request.upper()=="USER":
+                break
+            #user's password
+            elif request.upper()=="PASS":
+                break
+            #Sending a list of files and directories in the current directory from the server to the client
+            elif request.upper()=="LIST":
+                break
+            #download a file from the server
+            elif request.upper()=="RETR":
+                break
+            #upload a file to the server
+            elif request.upper()=="STOR":
+                break
+            #delete a file from the server
+            elif request.upper()=="DELE":
+                break
+            # make a new directory in the server
+            elif request.upper()=="MKD":
+                break
+            #delete a directory from the server
+            elif request.upper()=="RMD":
+                break
+            #get the current server directory path
+            elif request.upper()=="PWD":
+                break
+            #change the current directory to a certain directory
+            elif request.upper()=="CWD":
+                break
+            #change the directory to the parent directory
+            elif request.upper()=="CDUP":
+                break
+            #disconnecting the client from the server
+            elif request.upper()=="QUIT":
+                break
+            #no requests found
+            else:
+                break
+        
+        #close the connections
+        control_connection.close()
+        data_connection.close()
+
 
