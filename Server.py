@@ -34,3 +34,35 @@ class Server:
         self.data_port = data_port
         self.current_dir = BASE_DIR
         self.user_authenticated = False
+
+    #begining the FTP server
+    def start(self):
+        #creating the control socket with IPv4 and TCP protocol
+        control_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        #connect to the host='127.0.01' with control_port=21
+        control_socket.bind((self.host, self.control_port))
+        #control socket is listening limited to one user(changeable)
+        control_socket.listen(1)
+        #printing that server is listening on control port
+        print(f"Server started on {self.host} Port:{self.control_port}")
+        
+        #creating a data socket
+        data_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        #connect the socket to the host with data port
+        data_socket.bind((self.host, self.data_port))
+        #data socket is listening limited to one user(changeable)
+        data_socket.listen(1)
+        #printing that server is listening on data port
+        print(f"Data connection on {self.host} Port:{self.data_port}")
+        
+        #always accepting new connections
+        while True:
+            #accepting the incoming connection from the control socket
+            control_connection, addr = control_socket.accept()
+            print(f"Control connection established with {addr}")
+            #accepting the incoming connection from the data socket
+            data_connection, _ = data_socket.accept()
+            print("Data connection established.")
+            #processing client's requests
+            self.client_requests(control_connection, data_connection)
+
