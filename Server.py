@@ -1,11 +1,15 @@
 import socket
 import os
 import time
+import ssl
 
 host = '127.0.0.1'     #local host
 control_port = 21      #standard control port
-data_port = 2021       #can be 2021, 2121, 3000 etc for transfering data
+data_port = 2021       #can be 2021, 2121, 3000, etc for transferring data
 BASE_DIR = os.getcwd() #current directory
+# these files should have existed in the Server file
+CERT_FILE = "cert.pem"
+KEY_FILE = "key.pem"
 
 users ={
   "user1":  {"password":"00000001","read_access":False, "write_access":False, "delete_access":False, "create_access":False },
@@ -28,43 +32,61 @@ users ={
 
 class Server:
     #initial value of constructor
-    def __init__(self, host, control_port, data_port):
+    def __init__(self, host, control_port, data_port,KEY_FILE,CERT_FILE):
         self.host = host
         self.control_port = control_port
         self.data_port = data_port
         self.current_dir = BASE_DIR
         self.user_authenticated = False
+        self.certfile = CERT_FILE
+        self.keyfile = KEY_FILE
 
     #begining the FTP server
     def start(self):
-        #creating the control socket with IPv4 and TCP protocol
-        control_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        #connect to the host='127.0.01' with control_port=21
-        control_socket.bind((self.host, self.control_port))
-        #control socket is listening limited to one user(changeable)
-        control_socket.listen(1)
-        #printing that server is listening on control port
-        print(f"Server started on {self.host} Port:{self.control_port}")
+      #creating the control socket with IPv4 and TCP protocol
+      control_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      #SSL
+      control_socket = ssl.wrap_socket(
+        control_socket,
+        server_side=True,
+        certfile=self.certfile,
+        keyfile=self.keyfile,
+        ssl_version=ssl.PROTOCOL_TLS
+      )
+      #connect to the host='127.0.01' with control_port=21
+      control_socket.bind((self.host, self.control_port))
+      #control socket is listening limited to one user(changeable)
+      control_socket.listen(1)
+      #printing that server is listening on the control port
+      print(f"secure FTP Server started on {self.host} Port:{self.control_port} (TLS enabled)")
         
-        #creating a data socket
-        data_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        #connect the socket to the host with data port
-        data_socket.bind((self.host, self.data_port))
-        #data socket is listening limited to one user(changeable)
-        data_socket.listen(1)
-        #printing that server is listening on data port
-        print(f"Data connection on {self.host} Port:{self.data_port}")
-        
-        #always accepting new connections
-        while True:
-            #accepting the incoming connection from the control socket
-            control_connection, addr = control_socket.accept()
-            print(f"Control connection established with {addr}")
-            #accepting the incoming connection from the data socket
-            data_connection, _ = data_socket.accept()
-            print("Data connection established.")
-            #processing client's requests
-            self.client_requests(control_connection, data_connection)
+      #creating a data socket
+      data_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      #data socket with SSL
+        data_socket = ssl.wrap_socket(
+            data_socket, 
+            server_side=True, 
+            certfile=CERT_FILE, 
+            keyfile=KEY_FILE, 
+            ssl_version=ssl.PROTOCOL_TLS_SERVER
+        )
+      #connect the socket to the host with a data port
+      data_socket.bind((self.host, self.data_port))
+      #data socket is listening limited to one user(changeable)
+      data_socket.listen(1)
+      #printing that server is listening on the data port
+      print(f"secure FTP Server started on {self.host} Port:{self.control_port} (TLS enabled)")
+      
+      #always accepting new connections
+      while True:
+        #accepting the incoming connection from the control socket
+        control_connection, addr = control_socket.accept()
+        print(f"Control connection established with {addr}")
+        #accepting the incoming connection from the data socket
+        data_connection, _ = data_socket.accept()
+        print("Data connection established.")
+        #processing client's requests
+        self.client_requests(control_connection, data_connection)
 
     def client_requests(self,control_connection,data_connection):
 
@@ -248,6 +270,6 @@ class Server:
         data_connection.close()
 
 if __name__ == "__main__":
-    server =Server(host, control_port, data_port)
+    server =Server(host,control_port,data_port,KEY_FILE,CERT_FILE)
     server.start()
     file_info_list = []
