@@ -59,7 +59,7 @@ The main objective of this project in the networking course is to develop a file
    - Example: `RMD /path/to/dir`  
    - Status codes:  
      - **250**: Directory deleted successfully.  
-     - **550**: Directory not found or cannot be deleted.  
+     - **550**: The directory was not found and cannot be deleted.  
 
 9. **PWD**  
    - Retrieves the current server directory path.  
@@ -82,6 +82,8 @@ The main objective of this project in the networking course is to develop a file
     - Disconnects the user from the server. If a file transfer is in progress, it should not be interrupted.  
     - Status codes:  
       - **221**: Disconnection successful.
+     
+---
 
 **Relative and Absolute Paths**  
 
@@ -148,6 +150,8 @@ Access management is critical in an FTP system to ensure users can only access a
      - **Write Access:** Users can upload and edit files.  
      - **Delete Access:** Users can delete files and directories.  
      - **Create Access:** Users can create new directories.
+
+---
 
 **Security in Network Protocols**  
 
